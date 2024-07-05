@@ -53,7 +53,7 @@ public class Architecture2 {
 		RPG1 = new Register ("RPG1", null, intbus1);
 		RPG2 = new Register ("RPG2", null, intbus1);
 		RPG3 = new Register ("RPG3", null, intbus1);
-		Flags = new Register(3, intbus1);
+		Flags = new Register(2, intbus1);
 		fillRegistersList();
 		ula = new Ula(intbus1, extbus1);
 		memorySize = 128;
@@ -275,6 +275,7 @@ public class Architecture2 {
 	    // Ler valor da memória
 	    PC.read(); 
 	    memory.read(); 
+	    memory.read();
 	    ula.store(0); // Operando 1: valor da memória
 	    
 	    // Incrementar PC para o registrador de destino
@@ -322,6 +323,7 @@ public class Architecture2 {
 	    // Ler valor da memória
 	    PC.read();
 	    memory.read(); 
+	    memory.read();
 	    ula.store(1); // Operando 2: valor da memória
 	    
 	    // Realizar adição na ULA
@@ -345,6 +347,7 @@ public class Architecture2 {
 	    
 	    // Ler valor imediato da memória
 	    PC.read();
+	    memory.read();
 	    memory.read();
 	    ula.store(0); // Operando 1: valor imediato
 	    
@@ -380,16 +383,153 @@ public class Architecture2 {
 	//SUBS
 
 
-	public void subRegReg() {		
+	public void subRegReg() {
+	    // Incrementar PC para o registrador de origem
+	    this.incPc();
+	    
+	    // Ler ID do registrador de origem
+	    PC.read();
+	    memory.read();
+	
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(0); // Operando 1: valor do registrador de origem
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read();
+	    
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Operando 2: valor do registrador de destino
+	    
+	    // Realizar subtração na ULA
+	    ula.sub();
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Armazenar resultado no registrador de destino
+	    ula.internalRead(1);
+	    registersInternalStore();
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
+	}
+
+	
+	public void subMemReg() {	
+		// Incrementar PC para o endereço na memória
+	    this.incPc();
+	    
+	    // Ler valor da memória
+	    PC.read(); 
+	    memory.read();
+	    memory.read();
+	    ula.store(0); // Operando 1: valor da memória
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read(); 
+	    
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get()); 
+	    registersInternalRead(); 
+	    ula.store(1); // Operando 2: valor do registrador
+	    
+	    // Realizar subtração na ULA
+	    ula.sub();
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Armazenar resultado no registrador de destino
+	    ula.internalRead(1);
+	    registersInternalStore();
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
 	
-	public void subMemReg() {		
+	
+	public void subRegMem() {
+		// Incrementar PC para o registrador de origem
+	    this.incPc();
+	    
+	    // Ler ID do registrador de origem
+	    PC.read(); 
+	    memory.read();
+	    
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Operando 1: valor do registrador
+	    
+	    // Incrementar PC para o endereço na memória
+	    this.incPc();
+	    
+	    // Ler valor da memória
+	    PC.read();
+	    memory.read(); 
+	    memory.read(); 
+	    ula.store(1); // Operando 2: valor da memória
+	    
+	    // Realizar subtração na ULA
+	    ula.add();
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Armazenar resultado na memória
+	    ula.read(1);
+	    memory.store(); // Obs.:  como a memoria sabe o endereco para armazenar ?
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
 	
-	public void subRegMem() {		
+	public void subImmReg() {
+		// Incrementar PC para o valor imediato
+	    this.incPc();
+	    
+	    // Ler valor imediato da memória
+	    PC.read();
+	    memory.read();
+	    ula.store(0); // Operando 1: valor imediato
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read();
+	    
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Operando 2: valor do registrador
+	    
+	    // Realizar subtração na ULA
+	    ula.sub();
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Armazenar resultado no registrador de destino
+	    ula.internalRead(1);
+	    registersInternalStore();
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
-	
-	public void subImmReg() {}
 
 
 	
@@ -406,59 +546,412 @@ public class Architecture2 {
 	//MOVES	
 
 	public void moveRegReg() {
-		
+	    // Incrementar PC para o registrador de origem
+	    this.incPc();
+	    
+	    // Ler ID do registrador de origem
+	    PC.read(); 
+	    memory.read(); // ID do registrador de origem está agora no extbus1
+	    
+	    // Selecionar registrador de origem e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador de origem armazenado na ULA
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read(); // ID do registrador de destino está agora no extbus1
+	    
+	    // Selecionar registrador de destino
+	    demux.put(extbus1.get());
+	    ula.internalRead(0); // Valor da ULA armazenado no barramento interno 1
+	    
+	    // Armazenar valor no registrador de destino
+	    registersInternalStore(); 
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
+
 	public void moveMemReg() {
-		
+	    // Incrementar PC para o endereço na memória
+	    this.incPc();
+	    
+	    // Ler endereço da memória e armazená-lo
+	    PC.read(); 
+	    memory.read(); // O endereço de memória está agora no extbus1
+	    
+	    // Ler valor da memória
+	    memory.read();
+	    ula.store(0); // Valor da memória armazenado na ULA
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read(); // ID do registrador de destino está agora no extbus1
+	    
+	    // Selecionar registrador de destino
+	    demux.put(extbus1.get());
+	    ula.internalRead(0); // Valor da ULA armazenado no barramento interno 1
+	    
+	    // Armazenar valor no registrador de destino
+	    registersInternalStore(); 
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
+
 
 	public void moveRegMem() {
-		
+	    // Incrementar PC para o registrador de origem
+	    this.incPc();
+	    
+	    // Ler ID do registrador de origem
+	    PC.read(); 
+	    memory.read(); // ID do registrador de origem está agora no extbus1
+	    
+	    // Selecionar registrador de origem e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador armazenado na ULA
+	    
+	    // Incrementar PC para o endereço na memória
+	    this.incPc();
+	    
+	    // Ler endereço da memória
+	    PC.read();
+	    memory.read(); // Endereço de memória está agora no extbus1
+	    
+	    // Ler o valor armazenado na ULA
+	    ula.internalRead(0); // Lê o valor da ULA e coloca no barramento interno 1
+	    
+	    // Armazenar o valor no endereço de memória
+	    memory.store(); // Armazenar o valor no endereço de memória especificado pelo extbus1
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
+
+	
+
 	public void moveImmReg() {
-		
+	    // Incrementar PC para o valor imediato
+	    this.incPc();
+	    
+	    // Ler valor imediato da memória
+	    PC.read(); 
+	    memory.read(); // Valor imediato está agora no extbus1
+	    memory.read(); 
+	    
+	    // Armazenar valor imediato na ULA
+	    ula.store(0); // Valor imediato armazenado na ULA
+	    
+	    // Incrementar PC para o registrador de destino
+	    this.incPc();
+	    
+	    // Ler ID do registrador de destino
+	    PC.read();
+	    memory.read(); // ID do registrador de destino está agora no extbus1
+	    
+	    // Selecionar registrador de destino
+	    demux.put(extbus1.get());
+	    
+	    // Ler valor imediato armazenado na ULA e colocar no barramento interno 1
+	    ula.internalRead(0);
+	    
+	    // Armazenar valor no registrador de destino
+	    registersInternalStore();
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
 	}
 
 
+	public void incReg() {
+	    // Incrementar PC para apontar para o registrador
+	    this.incPc();
+	    
+	    // Ler ID do registrador
+	    PC.read(); 
+	    memory.read(); // ID do registrador está agora no extbus1
+	    
+	    // Selecionar registrador e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador armazenado na ULA
+	    
+	    // Incrementar valor na ULA
+	    ula.inc();
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Armazenar resultado no registrador de destino
+	    ula.internalRead(1); // Lê o valor incrementado da ULA
+	    registersInternalStore(); // Armazena o resultado no registrador
+	    
+	    // Incrementar PC para a próxima instrução
+	    this.incPc();
+	}
+
+	
+	public void jmp() {
+	    // Incrementar PC para apontar para o endereço de destino
+	    this.incPc();
+	    
+	    // Ler endereço de destino da memória
+	    PC.read(); 
+	    memory.read(); // Endereço de destino está agora no extbus1
+	    
+	    // Armazenar o endereço de destino no PC
+	    PC.store(); // Atualizar o PC com o novo endereço
+	}
+	
+	public void jn() {
+		 // Incrementar PC para apontar para o endereço de destino
+		 this.incPc();
+	    // Verificar se o bit de sinal (negativo) está setado
+	    if (Flags.getBit(1) == 1) { // Assumindo que o bit de sinal negativo é o bit 1	       
+	        
+	        // Ler endereço de destino da memória
+	        PC.read(); 
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se o bit de sinal não estiver setado, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	    }
+	}
+	
+	public void jz() {
+		// Incrementar PC para apontar para o endereço de destino
+        this.incPc();
+	    // Verificar se o bit zero está setado
+	    if (Flags.getBit(0) == 1) { // Assumindo que o bit zero é o bit 0        
+	        // Ler endereço de destino da memória
+	        PC.read(); 
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se o bit zero não estiver setado, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	    }
+	}
+	
+	
+	public void jeq() {
+	    // Incrementar PC para apontar para o primeiro registrador (RegA)
+	    this.incPc();
+	    
+	    // Ler ID do primeiro registrador (RegA)
+	    PC.read(); 
+	    memory.read(); // ID do registrador RegA está agora no extbus1
+	    
+	    // Selecionar registrador RegA e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador RegA armazenado na ULA
+	    
+	    // Incrementar PC para apontar para o segundo registrador (RegB)
+	    this.incPc();
+	    
+	    // Ler ID do segundo registrador (RegB)
+	    PC.read();
+	    memory.read(); // ID do registrador RegB está agora no extbus1 
+	    
+	    // Selecionar registrador RegB e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Valor do registrador RegB armazenado na ULA
+	    
+	    // Realizar subtração na ULA
+	    ula.sub(); // Subtrair os valores armazenados na ULA
+	    
+	    // Verificar se o resultado da subtração é zero
+	    setStatusFlags(intbus1.get()); // Atualiza os flags de status
+	    if (Flags.getBit(0) == 1) { // Assumindo que o bit zero (Z) indica igualdade
+	        // Incrementar PC para apontar para o endereço de destino
+	        this.incPc();
+	        
+	        // Ler endereço de destino da memória
+	        PC.read();
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se os valores não forem iguais, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	    }
+	}
 
 
-public void incReg() {
 	
-}
+	public void jneq() {
+	    // Incrementar PC para apontar para o primeiro registrador (RegA)
+	    this.incPc();
+	    
+	    // Ler ID do primeiro registrador (RegA)
+	    PC.read(); 
+	    memory.read(); // ID do registrador RegA está agora no extbus1
+	    
+	    // Selecionar registrador RegA e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador RegA armazenado na ULA
+	    
+	    // Incrementar PC para apontar para o segundo registrador (RegB)
+	    this.incPc();
+	    
+	    // Ler ID do segundo registrador (RegB)
+	    PC.read();
+	    memory.read(); // ID do registrador RegB está agora no extbus1
+	    
+	    // Selecionar registrador RegB e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Valor do registrador RegB armazenado na ULA
+	    
+	    // Realizar subtração na ULA
+	    ula.sub(); // Subtrair os valores armazenados na ULA
+	    
+	    // Verificar se o resultado da subtração não é zero
+	    setStatusFlags(intbus1.get()); // Atualiza os flags de status
+	    if (Flags.getBit(0) == 0) { // Assumindo que o bit zero (Z) indica igualdade, então verificamos se não é zero
+	        // Incrementar PC para apontar para o endereço de destino
+	        this.incPc();
+	        
+	        // Ler endereço de destino da memória
+	        PC.read();
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se os valores forem iguais, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	    }
+	}
+	
+	public void jgt() {
+	    // Incrementar PC para apontar para o primeiro registrador (RegA)
+	    this.incPc();
+	    
+	    // Ler ID do primeiro registrador (RegA)
+	    PC.read(); 
+	    memory.read(); // ID do registrador RegA está agora no extbus1
+	    
+	    // Selecionar registrador RegA e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador RegA armazenado na ULA
+	    
+	    // Incrementar PC para apontar para o segundo registrador (RegB)
+	    this.incPc();
+	    
+	    // Ler ID do segundo registrador (RegB)
+	    PC.read();
+	    memory.read(); // ID do registrador RegB está agora no extbus1
+	    
+	    // Selecionar registrador RegB e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Valor do registrador RegB armazenado na ULA
+	    
+	    // Realizar subtração na ULA
+	    ula.sub(); // Subtrair RegA - RegB
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Verificar se o resultado da subtração não é negativo
+	    if (Flags.getBit(1) == 0) { // Assumindo que o bit negativo é o bit 1
+	        // Incrementar PC para apontar para o endereço de destino
+	        this.incPc();
+	        
+	        // Ler endereço de destino da memória
+	        PC.read();
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.put(extbus1.get()); // Colocar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se o resultado for negativo, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	        this.incPc();
+	    }
+	}
 
-public void jmp() {
+	public void jlw() {
+	    // Incrementar PC para apontar para o primeiro registrador (RegA)
+	    this.incPc();
+	    
+	    // Ler ID do primeiro registrador (RegA)
+	    PC.read(); 
+	    memory.read(); // ID do registrador RegA está agora no extbus1
+	    
+	    // Selecionar registrador RegA e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead(); 
+	    ula.store(0); // Valor do registrador RegA armazenado na ULA
+	    
+	    // Incrementar PC para apontar para o segundo registrador (RegB)
+	    this.incPc();
+	    
+	    // Ler ID do segundo registrador (RegB)
+	    PC.read();
+	    memory.read(); // ID do registrador RegB está agora no extbus1
+	    
+	    // Selecionar registrador RegB e ler seu valor
+	    demux.put(extbus1.get());
+	    registersInternalRead();
+	    ula.store(1); // Valor do registrador RegB armazenado na ULA
+	    
+	    // Realizar subtração na ULA
+	    ula.sub(); // Subtrair RegA - RegB
+	    
+	    // Atualizar flags de status
+	    setStatusFlags(intbus1.get());
+	    
+	    // Verificar se o resultado da subtração é negativo
+	    if (Flags.getBit(1) == 1) { // Assumindo que o bit negativo é o bit 1
+	        // Incrementar PC para apontar para o endereço de destino
+	        this.incPc();
+	        
+	        // Ler endereço de destino da memória
+	        PC.read();
+	        memory.read(); // Endereço de destino está agora no extbus1
+	        
+	        // Armazenar o endereço de destino no PC
+	        PC.store(); // Atualizar o PC com o novo endereço
+	    } else {
+	        // Se o resultado não for negativo, apenas incrementar PC para a próxima instrução
+	        this.incPc();
+	        this.incPc();
+	    }
+	}
 	
-}
 
-public void jn() {
+	public void read() {
+		
+	}
+	public void store() {
+		
+	}
 	
-}
-
-public void jz() {
-	
-}
-public void jeq() {
-	
-}
-public void jneq() {
-	
-}
-public void jgt() {
-	
-}
-public void jlw() {
-	
-}
-public void read() {
-	
-}
-public void store() {
-	
-}
-
-public void ldi() {
-	
-}
+	public void ldi() {
+		
+	}
 
 
 	
